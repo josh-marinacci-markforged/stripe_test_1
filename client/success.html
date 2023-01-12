@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h3>purchase complete</h3>
+<p>
+  <b>status</b><i id="status"></i>
+</p>
+<p>
+  <b>total</b><i id="total"></i>
+</p>
+
+<script>
+  const $ = (sel) => document.querySelector(sel)
+  const urlParams = new URLSearchParams(window.location.search)
+  const sessionId = urlParams.get("session_id")
+  if (sessionId) {
+    fetch("/checkout-session?sessionId=" + sessionId).then(function(result){
+      return result.json()
+    }).then(function(session){
+      var sessionJSON = JSON.stringify(session, null, 2);
+      console.log("got JSON back",session,sessionJSON)
+      console.log("created",session.amount_total,
+              session.created,
+              session.status,
+      )
+      $("#status").innerText = session.status
+      $("#total").innerText = session.amount_total
+    }).catch(function(err){
+      console.log('Error when fetching Checkout session', err);
+    });
+  }
+</script>
+
+</body>
+</html>

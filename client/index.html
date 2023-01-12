@@ -1,0 +1,98 @@
+<html>
+<body>
+<h1>hello</h1>
+
+<ul id="products">
+</ul>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script type="module">
+    const $ = (sel) => document.querySelector(sel)
+    const on = (el, type, cb) => el.addEventListener(type,cb)
+    let stripe = null
+
+
+    // function createCheckoutSession() {
+        // var inputEl = document.getElementById("quantity-input");
+        // var quantity = parseInt(inputEl.value);
+    //     return fetch("/create-checkout-session", {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //         },
+    //         body: JSON.stringify({
+    //             quantity: quantity,
+    //             // The account selected in the UI and the one that we'll pass as the
+    //             // transfer_data destination on the server side.
+    //             account: document.querySelector("#enabled-accounts-select").value,
+    //         }),
+    //     }).then(function (result) {
+    //         return result.json();
+    //     });
+    // };
+
+    function create_checkout_session() {
+        return fetch("/create-checkout-session", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                // quantity: quantity,
+                // The account selected in the UI and the one that we'll pass as the
+                // transfer_data destination on the server side.
+                // account: document.querySelector("#enabled-accounts-select").value,
+            }),
+        }).then(function (result) {
+            return result.json();
+        })
+    }
+    const products = [
+        {
+            name:'product 1',
+            price:599,
+            currency:'USDC',
+        },
+        {
+            name:'product 2',
+            price:800,
+            currency:'USDC',
+        },
+    ]
+    products.forEach(prod => {
+        let button = document.createElement('button')
+        button.innerText = 'buy ' + prod.name + ' ' + (prod.price/100).toFixed(2)
+        on(button,'click',() => {
+            console.log("buying the product", prod)
+            create_checkout_session().then(data => {
+                console.log('data is',data)
+                stripe
+                    .redirectToCheckout({
+                        sessionId: data.sessionId,
+                    })
+                    .then((r)=>{
+                        console.log("handling the result",r)
+                    });
+
+            })
+        })
+        $("#products").appendChild(button)
+    })
+
+    fetch("/config")
+        .then(function (result) {
+            return result.json();
+        })
+        .then(function (config) {
+            console.log("got json back from config", config)
+            config.accounts.data.forEach((acct)=> console.log("acct",acct.id))
+
+            stripe = Stripe(config.publicKey)
+            console.log('stripe is now',stripe)
+
+        })
+
+
+</script>
+</body>
+</html>
